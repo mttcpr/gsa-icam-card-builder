@@ -6,6 +6,11 @@
 
 CWD=$(pwd)
 
+# OpenSSL 3.x removed RC2-40-CBC from the default provider; PKCS12 files
+# created with legacy algorithms require -legacy to extract keys/certs.
+PKCS12_LEGACY=""
+openssl version 2>/dev/null | grep -qE '^OpenSSL [3-9]' && PKCS12_LEGACY="-legacy"
+
 revoke() {
 	SUBJ=$1
 	ISSUER=$2
@@ -30,10 +35,10 @@ revoke() {
     fi
 
 		# Get CA cert
-		openssl pkcs12 -in $ISSUER.p12 -nocerts -nodes -passin pass: -passout pass: -out $SRCDIR/$ISSUER.private.pem >/dev/null 2>&1
+		openssl pkcs12 $PKCS12_LEGACY -in $ISSUER.p12 -nocerts -nodes -passin pass: -passout pass: -out $SRCDIR/$ISSUER.private.pem >/dev/null 2>&1
 		if [ $? -ne 0 ]; then popd >/dev/null 2>&1; return 1; fi
 		# Get CA key
-		openssl pkcs12 -in $ISSUER.p12 -clcerts -passin pass: -nokeys -out $SRCDIR/$ISSUER.crt >/dev/null 2>&1
+		openssl pkcs12 $PKCS12_LEGACY -in $ISSUER.p12 -clcerts -passin pass: -nokeys -out $SRCDIR/$ISSUER.crt >/dev/null 2>&1
 		if [ $? -ne 0 ]; then popd >/dev/null 2>&1; return 2; fi
 
     if [ z$SUBJ != "z" ]; then

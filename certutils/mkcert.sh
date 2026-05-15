@@ -128,6 +128,10 @@ debug_output()
 
 debug_output /tmp/$(basename $0 .sh).log
 
+# OpenSSL 3.x requires -legacy for RC2 or 3DES encrypted PKCS12 files
+PKCS12_LEGACY=""
+openssl version 2>/dev/null | grep -qE '^OpenSSL [3-9]' && PKCS12_LEGACY="-legacy"
+
 BATCH=0
 WIN32=0
 ECCALG=prime256v1
@@ -355,7 +359,7 @@ pushd data
 
 	# Get the signer private and public keys
 
-	openssl pkcs12 \
+	openssl pkcs12 $PKCS12_LEGACY \
 		-in $SCA_P12 \
 		-nocerts \
 		-nodes \
@@ -363,7 +367,7 @@ pushd data
 		-passout pass: \
 		-out pem/$(basename $SCA_P12 .p12).private.pem
 
-	openssl pkcs12 \
+	openssl pkcs12 $PKCS12_LEGACY \
 		-in $SCA_P12 \
 		-clcerts \
 		-passin pass: \
@@ -440,13 +444,6 @@ pushd data
 	chmod 644 pem/$(basename $EE_P12 .p12).pem
 
 
-#openssl pkcs12 \
-#-export \
-#-name 'ICAM Test Card OCSP PIV RSA 2048 Valid Signer gen3' \
-#-descert \
-#-passout pass: \
-#-in pem/ICAM_Test_Card_OCSP_PIV_RSA_2048_Valid_Signer_gen3.pem -macalg sha256 \
-#-out ICAM_Test_Card_OCSP_PIV_RSA_2048_Valid_Signer_gen3.p12
 
 	if [ $WIN32 -eq 1 ]; then
 		openssl pkcs12 \
