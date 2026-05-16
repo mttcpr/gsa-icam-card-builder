@@ -75,7 +75,8 @@ process() {
 	shift
 	SER=$(expr $1 : "serial=\(.*\)")
 	shift
-	SUB=$(expr "$*" : "subject= \(.*\)")
+	SUB=$(expr "$*" : "subject= \(.*\)" 2>/dev/null)
+	[ -z "$SUB" ] && SUB=$(expr "$*" : "subject=\(.*\)" 2>/dev/null)
 	TAB=$(echo -n $'\t')
 	if [ r$STAT == r"R" ]; then
 		REV=$(date +%y%m%d%H%M%SZ)
@@ -112,7 +113,7 @@ p12tocert() {
 		CRTUPDT=$(stat --printf="%Y\n" "$2")
 	fi
 	if [ 1 -eq 1 -o $P12UPDT -ge $CRTUPDT ]; then
-		openssl pkcs12 \
+		openssl pkcs12 $PKCS12_LEGACY \
 			-in "$1" \
 			-passin pass: \
 			-nokeys 2>&10 | \
@@ -128,7 +129,7 @@ p12tokey() {
 		KEYUPDT=$(stat --printf="%Y\n" "$2")
 	fi
 	if [ 1 -eq 1 -o $P12UPDT -ge $KEYUPDT ]; then
-		openssl pkcs12 \
+		openssl pkcs12 $PKCS12_LEGACY \
 			-in "$1" \
 			-nocerts \
 			-nodes \
@@ -163,7 +164,7 @@ reindex() {
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
 
-				X=$(openssl x509 -serial -subject -in "$G" -noout) 
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen1-2 $STATUS $Y $X
@@ -172,7 +173,7 @@ reindex() {
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
 
-				X=$(openssl x509 -serial -subject -in "$G" -noout) 
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen1-2 $STATUS $Y $X
@@ -181,7 +182,7 @@ reindex() {
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
 
-				X=$(openssl x509 -serial -subject -in "$G" -noout) 
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen1-2 $STATUS $Y $X
@@ -190,7 +191,7 @@ reindex() {
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
 
-				X=$(openssl x509 -serial -subject -in "$G" -noout) 
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen1-2 $STATUS $Y $X
@@ -206,7 +207,7 @@ reindex() {
 				F="3 - ICAM_PIV_Auth_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout) 
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen1-2 $STATUS $Y $X
@@ -214,7 +215,7 @@ reindex() {
 				F="4 - ICAM_PIV_Dig_Sig_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout) 
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen1-2 $STATUS $Y $X
@@ -222,7 +223,7 @@ reindex() {
 				F="5 - ICAM_PIV_Key_Mgmt_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout) 
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen1-2 $STATUS $Y $X
@@ -230,7 +231,7 @@ reindex() {
 				F="6 - ICAM_PIV_Card_Auth_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout) 
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen1-2 $STATUS $Y $X
@@ -245,7 +246,7 @@ reindex() {
 				F="3 - ICAM_PIV_Auth_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout) 
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen3 $STATUS $Y $X
@@ -253,7 +254,7 @@ reindex() {
 				F="4 - ICAM_PIV_Dig_Sig_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in '4 - ICAM_PIV_Dig_Sig_SP_800-73-4.crt' -noout)
+				X=$(openssl x509 -serial -subject -nameopt compat -in '4 - ICAM_PIV_Dig_Sig_SP_800-73-4.crt' -noout)
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME  | tail -n 1| awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen3 $STATUS $Y $X
@@ -261,7 +262,7 @@ reindex() {
 				F="5 - ICAM_PIV_Key_Mgmt_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout)
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout)
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME  | tail -n 1| awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen3 $STATUS $Y $X
@@ -269,7 +270,7 @@ reindex() {
 				F="6 - ICAM_PIV_Card_Auth_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout)
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout)
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME  | tail -n 1| awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process piv-gen3 $STATUS $Y $X
@@ -284,7 +285,7 @@ reindex() {
 				F="3 - ICAM_PIV_Auth_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout) 
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process pivi-gen3 V $Y $X
@@ -292,7 +293,7 @@ reindex() {
 				F="4 - ICAM_PIV_Dig_Sig_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout)
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout)
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME  | tail -n 1| awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process pivi-gen3 V $Y $X
@@ -300,7 +301,7 @@ reindex() {
 				F="5 - ICAM_PIV_Key_Mgmt_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout)
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout)
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME  | tail -n 1| awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process pivi-gen3 V $Y $X
@@ -308,7 +309,7 @@ reindex() {
 				F="6 - ICAM_PIV_Card_Auth_SP_800-73-4.p12"
 				G=$(basename "$F" .p12).crt
 				if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-				X=$(openssl x509 -serial -subject -in "$G" -noout)
+				X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout)
 				Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME  | tail -n 1| awk '{ print $7 }' | sed 's/[:\r]//g')
 				STATUS=V
 				process pivi-gen3 V $Y $X
@@ -324,7 +325,7 @@ reindex() {
 					F="3 - ICAM_PIV_Auth_SP_800-73-4.p12"
 					G=$(basename "$F" .p12).crt
 					if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-					X=$(openssl x509 -serial -subject -in "$G" -noout) 
+					X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout) 
 					Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
 					STATUS=V
 					process piv-rsa-2048 $STATUS $Y $X
@@ -332,7 +333,7 @@ reindex() {
 					F="4 - ICAM_PIV_Dig_Sig_SP_800-73-4.p12"
 					G=$(basename "$F" .p12).crt
 					if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-					X=$(openssl x509 -serial -subject -in '4 - ICAM_PIV_Dig_Sig_SP_800-73-4.crt' -noout)
+					X=$(openssl x509 -serial -subject -nameopt compat -in '4 - ICAM_PIV_Dig_Sig_SP_800-73-4.crt' -noout)
 					Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME  | tail -n 1| awk '{ print $7 }' | sed 's/[:\r]//g')
 					STATUS=V
 					process piv-rsa-2048 $STATUS $Y $X
@@ -340,7 +341,7 @@ reindex() {
 					F="5 - ICAM_PIV_Key_Mgmt_SP_800-73-4.p12"
 					G=$(basename "$F" .p12).crt
 					if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-					X=$(openssl x509 -serial -subject -in "$G" -noout)
+					X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout)
 					Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME  | tail -n 1| awk '{ print $7 }' | sed 's/[:\r]//g')
 					STATUS=V
 					process piv-rsa-2048 $STATUS $Y $X
@@ -348,7 +349,7 @@ reindex() {
 					F="6 - ICAM_PIV_Card_Auth_SP_800-73-4.p12"
 					G=$(basename "$F" .p12).crt
 					if [ ! -f "$G" ]; then p12tocert "$F" "$G"; fi
-					X=$(openssl x509 -serial -subject -in "$G" -noout)
+					X=$(openssl x509 -serial -subject -nameopt compat -in "$G" -noout)
 					Y=$(openssl x509 -in "$G" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME  | tail -n 1| awk '{ print $7 }' | sed 's/[:\r]//g')
 					STATUS=V
 					process piv-rsa-2048 $STATUS $Y $X
@@ -366,8 +367,8 @@ reindex() {
 			CTR=$(expr $CTR + 1); if [ $CTR -lt 10 ]; then PAD="0"; else PAD=""; fi
 
 			if [ ! -f $C ]; then
-				echo "$C was not found."
-				exit 1
+				echo "WARNING: $C was not found, skipping."
+				continue
 			fi
 			F="pem/$(basename $C .p12).crt"
 			if [ ! -f "$F" ]; then p12tocert "$C" "$F"; fi
@@ -376,7 +377,7 @@ reindex() {
 
 			I=$(openssl x509 -in $F -issuer -noout 2>&10 | grep -y signing | grep -v expired |sed 's/^.*CN=//g; s/ /_/g'|sort -u)
 			Y=$(openssl x509 -in "$F" -outform der 2>&10 | openssl asn1parse -inform der | grep UTCTIME | tail -n 1 | awk '{ print $7 }' | sed 's/[:\r]//g')
-			X=$(openssl x509 -serial -subject -in "$F" -noout) 
+			X=$(openssl x509 -serial -subject -nameopt compat -in "$F" -noout) 
 
 			echo "${PAD}${CTR}: ${C}..."
 			if [ $(expr "$F" : ".*SSL.*$") -ge 3 ]; then
@@ -384,7 +385,7 @@ reindex() {
 			fi
 
 			# Figure out *-index.txt names
-			AKID=$(openssl x509 -in $F -text -noout 2>&10 | grep keyid: | sed 's/\s//g; s/keyid://g; s/://g')
+			AKID=$(openssl x509 -in $F -text -noout 2>&10 | grep -A1 "Authority Key Identifier" | grep -v "Authority Key" | sed 's/\s//g; s/keyid://g; s/://g')
 
 			case $AKID in
 				$PIV_GEN3_P256)
@@ -536,7 +537,9 @@ CONTP12S="ICAM_Test_Card_PIV_Content_Signer_-_expired_gen1-2.p12 \
 	ICAM_Test_Card_PIV-I_P-256_SM_Certifiate_Signer.p12 \
 	ICAM_Test_Card_PIV-I_Content_Signer_-_gold_gen1-2.p12 \
 	ICAM_Test_Card_PIV-I_Content_Signer_-_gold_gen3.p12 \
-  ICAM_Test_Card_PIV_Revoked_CHUID_Signer_Cert_gen3.p12"
+  ICAM_Test_Card_PIV_Revoked_CHUID_Signer_Cert_gen3.p12 \
+	ICAM_Test_Card_PIV_Revoked_Content_Signer_gen3.p12 \
+	ICAM_Test_Card_PIV-I_OCSP_Response_Signer_-_gold_gen3.p12"
 
 OCSPP12S="ICAM_Test_Card_PIV_OCSP_Expired_Signer_gen3.p12 \
 	ICAM_Test_Card_PIV_OCSP_Invalid_Sig_Signer_gen3.p12 \
@@ -546,6 +549,7 @@ OCSPP12S="ICAM_Test_Card_PIV_OCSP_Expired_Signer_gen3.p12 \
 	ICAM_Test_Card_PIV_OCSP_Valid_Signer_gen3.p12 \
 	ICAM_Test_Card_PIV_OCSP_Valid_Signer_P384_gen3.p12 \
 	ICAM_Test_Card_PIV-I_OCSP_Valid_Signer_gen3.p12 \
+	ICAM_Test_Card_PIV-I_OCSP_Valid_Signer_-_gold_gen3.p12 \
 	ICAM_Test_Card_PIV_OCSP_RSA_2048_Valid_Signer_gen3.p12"
 
 CERTLIST=""
